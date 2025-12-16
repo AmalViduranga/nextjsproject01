@@ -1,29 +1,54 @@
 "use client";  
 import Link from "next/link";
-import React from "react";
+import React, {useEffect} from "react";
 import {useRouter} from "next/navigation";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 
 
 
 export default function SignupPage() {
+    const router = useRouter();
     const [user, setUser] = React.useState({
         email: "",
         password: "",
         username: "",
     });
+    const [buttonDisabled, setButtonDisabled] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
 
     const onSignup = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.post("/api/users/signup", user);
+            console.log("Signup successful", response.data);
+            router.push("/login");
+            
+        } catch (error: any) {
+            console.log("Signup failed", error.message);
+
+            toast.error(error.message);
+        }finally {
+            setLoading(false);
+        }
 
     }
+
+    useEffect(() => {
+        if (user.email.length > 0 && user.password.length > 0 && user.username.length > 0) {
+            setButtonDisabled(false);
+        } else {
+            setButtonDisabled(true);
+        }
+    }, [user]);
 
 
 
     return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
       <div className="w-full max-w-md rounded-2xl bg-gray-900/70 p-8 shadow-2xl backdrop-blur">
-        <h1 className="mb-2 text-center text-2xl font-semibold">Create an account</h1>
+        <h1 className="mb-2 text-center text-2xl font-semibold">{loading ? "Creating Account" : "Create an Account" }</h1>
         <p className="mb-6 text-center text-sm text-gray-300">
           Join RecipeChain to save and share your favorite recipes.
         </p>
@@ -90,7 +115,8 @@ export default function SignupPage() {
             type="submit"
             className="mt-2 w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-black shadow-md transition hover:bg-orange-400 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-gray-900"
           >
-            Sign up
+            {buttonDisabled ? "Fill all fields" : "Sign up"
+            }
           </button>
         </form>
 
@@ -107,3 +133,4 @@ export default function SignupPage() {
     </div>
   );
 }
+
